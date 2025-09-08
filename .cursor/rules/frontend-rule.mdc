@@ -1,13 +1,118 @@
 ---
 description: When designing a frontend or frontend components.
-globs: 
+globs:
 alwaysApply: false
 ---
+
 ### Rules for Frontend
 
 - You must pay attention to visual clarity and contrast. Do not place white text on a white background.
-- You must ensure the UX is pleasant. Boxes should grow to fit their contents, etc. 
+- You must ensure the UX is pleasant. Boxes should grow to fit their contents, etc.
 - When asking the user for sensitive information - you must use password style text-entry boxes in the UI.
-- You should use Next.js as it works best with Vercel. 
-- This frontend will ultimately be deployed on Vercel, but it should be possible to test locally. 
+- You should use Next.js as it works best with Vercel.
+- This frontend will ultimately be deployed on Vercel, but it should be possible to test locally.
 - Always provide users with a way to run the created UI once you have created it.
+
+### Professional Color Themes
+
+Choose from these professional color schemes for a modern, enterprise-ready appearance:
+
+#### 1. Modern Blue Theme (Recommended)
+
+```css
+:root {
+  --primary: #2563eb; /* Blue-600 */
+  --primary-dark: #1d4ed8; /* Blue-700 */
+  --primary-light: #3b82f6; /* Blue-500 */
+  --secondary: #64748b; /* Slate-500 */
+  --accent: #0ea5e9; /* Sky-500 */
+  --background: #ffffff; /* White */
+  --surface: #f8fafc; /* Slate-50 */
+  --text-primary: #0f172a; /* Slate-900 */
+  --text-secondary: #475569; /* Slate-600 */
+  --border: #e2e8f0; /* Slate-200 */
+  --success: #10b981; /* Emerald-500 */
+  --warning: #f59e0b; /* Amber-500 */
+  --error: #ef4444; /* Red-500 */
+}
+```
+
+#### 2. Professional Dark Theme
+
+```css
+:root {
+  --primary: #3b82f6; /* Blue-500 */
+  --primary-dark: #2563eb; /* Blue-600 */
+  --primary-light: #60a5fa; /* Blue-400 */
+  --secondary: #94a3b8; /* Slate-400 */
+  --accent: #06b6d4; /* Cyan-500 */
+  --background: #0f172a; /* Slate-900 */
+  --surface: #1e293b; /* Slate-800 */
+  --text-primary: #f1f5f9; /* Slate-100 */
+  --text-secondary: #cbd5e1; /* Slate-300 */
+  --border: #334155; /* Slate-700 */
+  --success: #10b981; /* Emerald-500 */
+  --warning: #f59e0b; /* Amber-500 */
+  --error: #ef4444; /* Red-500 */
+}
+```
+
+#### 3. Corporate Gray Theme
+
+```css
+:root {
+  --primary: #374151; /* Gray-700 */
+  --primary-dark: #1f2937; /* Gray-800 */
+  --primary-light: #4b5563; /* Gray-600 */
+  --secondary: #6b7280; /* Gray-500 */
+  --accent: #059669; /* Emerald-600 */
+  --background: #ffffff; /* White */
+  --surface: #f9fafb; /* Gray-50 */
+  --text-primary: #111827; /* Gray-900 */
+  --text-secondary: #4b5563; /* Gray-600 */
+  --border: #d1d5db; /* Gray-300 */
+  --success: #059669; /* Emerald-600 */
+  --warning: #d97706; /* Amber-600 */
+  --error: #dc2626; /* Red-600 */
+}
+```
+
+#### 4. Tech Purple Theme
+
+```css
+:root {
+  --primary: #7c3aed; /* Violet-600 */
+  --primary-dark: #6d28d9; /* Violet-700 */
+  --primary-light: #8b5cf6; /* Violet-500 */
+  --secondary: #64748b; /* Slate-500 */
+  --accent: #06b6d4; /* Cyan-500 */
+  --background: #ffffff; /* White */
+  --surface: #faf5ff; /* Violet-50 */
+  --text-primary: #1e1b4b; /* Violet-900 */
+  --text-secondary: #4c1d95; /* Violet-800 */
+  --border: #e9d5ff; /* Violet-200 */
+  --success: #10b981; /* Emerald-500 */
+  --warning: #f59e0b; /* Amber-500 */
+  --error: #ef4444; /* Red-500 */
+}
+```
+
+### Color Usage Guidelines
+
+- **Primary**: Use for main actions, links, and key UI elements
+- **Secondary**: Use for supporting text and less prominent elements
+- **Accent**: Use for highlights, hover states, and call-to-action elements
+- **Background**: Main page background color
+- **Surface**: Cards, modals, and elevated components
+- **Text Primary**: Main text content
+- **Text Secondary**: Supporting text, captions, and labels
+- **Border**: Component borders and dividers
+- **Success/Warning/Error**: Status indicators and feedback messages
+
+### Implementation Notes
+
+- Use CSS custom properties (CSS variables) for easy theme switching
+- Ensure sufficient contrast ratios (WCAG AA compliance)
+- Test color combinations for accessibility
+- Consider implementing both light and dark theme variants
+- Use semantic color names rather than specific color values in components

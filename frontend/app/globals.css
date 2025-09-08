@@ -1,0 +1,243 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Test styles to see if CSS is being processed */
+body {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Professional Color Themes */
+:root {
+  /* Modern Blue Theme (Default) */
+  --primary: #2563eb;        /* Blue-600 */
+  --primary-dark: #1d4ed8;   /* Blue-700 */
+  --primary-light: #3b82f6;  /* Blue-500 */
+  --secondary: #64748b;      /* Slate-500 */
+  --accent: #0ea5e9;         /* Sky-500 */
+  --background: #ffffff;     /* White */
+  --surface: #f8fafc;        /* Slate-50 */
+  --text-primary: #0f172a;   /* Slate-900 */
+  --text-secondary: #475569; /* Slate-600 */
+  --border: #e2e8f0;         /* Slate-200 */
+  --success: #10b981;        /* Emerald-500 */
+  --warning: #f59e0b;        /* Amber-500 */
+  --error: #ef4444;          /* Red-500 */
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --primary: #3b82f6;        /* Blue-500 */
+  --primary-dark: #2563eb;   /* Blue-600 */
+  --primary-light: #60a5fa;  /* Blue-400 */
+  --secondary: #94a3b8;      /* Slate-400 */
+  --accent: #06b6d4;         /* Cyan-500 */
+  --background: #0f172a;     /* Slate-900 */
+  --surface: #1e293b;        /* Slate-800 */
+  --text-primary: #f1f5f9;   /* Slate-100 */
+  --text-secondary: #cbd5e1; /* Slate-300 */
+  --border: #334155;         /* Slate-700 */
+  --success: #10b981;        /* Emerald-500 */
+  --warning: #f59e0b;        /* Amber-500 */
+  --error: #ef4444;          /* Red-500 */
+}
+
+/* Corporate Gray Theme */
+[data-theme="corporate"] {
+  --primary: #374151;        /* Gray-700 */
+  --primary-dark: #1f2937;   /* Gray-800 */
+  --primary-light: #4b5563;  /* Gray-600 */
+  --secondary: #6b7280;      /* Gray-500 */
+  --accent: #059669;         /* Emerald-600 */
+  --background: #ffffff;     /* White */
+  --surface: #f9fafb;        /* Gray-50 */
+  --text-primary: #111827;   /* Gray-900 */
+  --text-secondary: #4b5563; /* Gray-600 */
+  --border: #d1d5db;         /* Gray-300 */
+  --success: #059669;        /* Emerald-600 */
+  --warning: #d97706;        /* Amber-600 */
+  --error: #dc2626;          /* Red-600 */
+}
+
+/* Tech Purple Theme */
+[data-theme="purple"] {
+  --primary: #7c3aed;        /* Violet-600 */
+  --primary-dark: #6d28d9;   /* Violet-700 */
+  --primary-light: #8b5cf6;  /* Violet-500 */
+  --secondary: #64748b;      /* Slate-500 */
+  --accent: #06b6d4;         /* Cyan-500 */
+  --background: #ffffff;     /* White */
+  --surface: #faf5ff;        /* Violet-50 */
+  --text-primary: #1e1b4b;   /* Violet-900 */
+  --text-secondary: #4c1d95; /* Violet-800 */
+  --border: #e9d5ff;         /* Violet-200 */
+  --success: #10b981;        /* Emerald-500 */
+  --warning: #f59e0b;        /* Amber-500 */
+  --error: #ef4444;          /* Red-500 */
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+/* Utility classes for theme colors */
+.bg-primary { background-color: var(--primary); }
+.bg-primary-dark { background-color: var(--primary-dark); }
+.bg-primary-light { background-color: var(--primary-light); }
+.bg-secondary { background-color: var(--secondary); }
+.bg-accent { background-color: var(--accent); }
+.bg-surface { background-color: var(--surface); }
+.bg-background { background-color: var(--background); }
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent); }
+
+.border-primary { border-color: var(--primary); }
+.border-secondary { border-color: var(--secondary); }
+.border-default { border-color: var(--border); }
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Focus styles for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  --tw-ring-color: var(--primary);
+}
+
+/* Message bubble styles */
+.message-bubble {
+  @apply rounded-lg px-4 py-2;
+  max-width: 18rem;
+  word-wrap: break-word;
+}
+
+@media (min-width: 1024px) {
+  .message-bubble {
+    max-width: 28rem;
+  }
+}
+
+.message-user {
+  @apply bg-primary text-white ml-auto;
+}
+
+.message-assistant {
+  @apply bg-surface text-text-primary border border-border;
+}
+
+/* Input styles */
+.input-field {
+  @apply w-full px-3 py-2 border border-border rounded-lg bg-background text-text-primary focus-ring;
+}
+
+.input-field::placeholder {
+  color: var(--text-secondary);
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-primary text-white px-4 py-2 rounded-lg focus-ring transition-colors duration-200;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+  @apply bg-surface text-text-primary border border-border px-4 py-2 rounded-lg focus-ring transition-colors duration-200;
+}
+
+.btn-secondary:hover {
+  background-color: var(--border);
+}
+
+.btn-danger {
+  @apply bg-error text-white px-4 py-2 rounded-lg focus-ring transition-colors duration-200;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply animate-spin rounded-full border-2 border-gray-300;
+  border-top-color: var(--primary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .message-bubble {
+    max-width: 18rem;
+  }
+}

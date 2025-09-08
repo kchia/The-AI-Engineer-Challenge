@@ -21,44 +21,44 @@ graph TB
         Theme[Theme System<br/>4 Professional Color Schemes]
         Chat[Chat Interface<br/>Real-time Streaming UI]
     end
-    
+
     subgraph "Backend Layer"
         API[FastAPI Backend<br/>Python + Pydantic]
         Stream[Streaming Response<br/>Server-Sent Events]
         CORS[CORS Middleware<br/>Cross-Origin Support]
     end
-    
+
     subgraph "External Services"
         OpenAI[OpenAI API<br/>GPT-4.1-mini]
         Vercel[Vercel Platform<br/>Deployment & Hosting]
     end
-    
+
     subgraph "Development Tools"
         Cursor[Cursor AI<br/>AI-Assisted Development]
         Git[Git + GitHub<br/>Version Control]
         Docs[Documentation<br/>Next.js + Vercel Docs]
     end
-    
+
     UI --> API
     Chat --> Stream
     API --> OpenAI
     Stream --> UI
     API --> CORS
-    
+
     UI --> Vercel
     API --> Vercel
-    
+
     Cursor --> UI
     Cursor --> API
     Git --> UI
     Git --> API
     Docs --> Cursor
-    
+
     classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef backend fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
     classDef external fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
     classDef tools fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    
+
     class UI,Theme,Chat frontend
     class API,Stream,CORS backend
     class OpenAI,Vercel external
@@ -78,6 +78,7 @@ graph TB
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **Next.js 14** - React framework with App Router
 - **TypeScript** - Type-safe development
 - **Tailwind CSS v3.4** - Utility-first CSS framework
@@ -85,12 +86,14 @@ graph TB
 - **React Context** - State management for themes
 
 ### Backend
+
 - **FastAPI** - Modern Python web framework
 - **Pydantic** - Data validation and settings
 - **OpenAI Python SDK** - GPT model integration
 - **Uvicorn** - ASGI server for production
 
 ### Deployment & Tools
+
 - **Vercel** - Frontend and API deployment platform
 - **Git & GitHub** - Version control and collaboration
 - **Cursor AI** - AI-assisted development environment
@@ -135,6 +138,7 @@ The-AI-Engineer-Challenge/
 > **Prerequisites**: Node.js 18+, Python 3.11+, Git, and an OpenAI API key
 
 ### 1. Clone and Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/AI-Maker-Space/The-AI-Engineer-Challenge.git
@@ -150,6 +154,7 @@ pip install -r requirements.txt
 ```
 
 ### 2. Start Development Servers
+
 ```bash
 # Terminal 1: Start the backend
 cd api
@@ -161,6 +166,7 @@ npm run dev
 ```
 
 ### 3. Access Your Application
+
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
@@ -170,13 +176,14 @@ npm run dev
 This challenge is designed to teach you modern full-stack development with AI integration. Here's your structured learning journey:
 
 ### Phase 1: Foundation & Setup
+
 <details>
   <summary>🖥️ Understanding LLM APIs and Development</summary>
 
 **Objective**: Learn how to interact with Large Language Models programmatically
 
 1. **Interactive Notebook**: Complete the [GPT-4.1-mini Developer Notebook](https://colab.research.google.com/drive/1sT7rzY_Lb1_wS0ELI1JJfff0NUEcSD72?usp=sharing)
-2. **Key Concepts**: 
+2. **Key Concepts**:
    - API authentication and key management
    - Message roles (user, assistant, system)
    - Streaming responses vs. complete responses
@@ -196,6 +203,7 @@ This challenge is designed to teach you modern full-stack development with AI in
 3. **Development Environment**: Configure your IDE and tools
 
 **Prerequisites**:
+
 - GitHub account with Personal Access Token
 - Git installed and configured
 - Code editor (Cursor, VS Code, etc.)
@@ -205,6 +213,7 @@ This challenge is designed to teach you modern full-stack development with AI in
 </details>
 
 ### Phase 2: AI-Assisted Development
+
 <details>
   <summary>🔥 Cursor AI Setup for Vibe Coding</summary>
 
@@ -215,6 +224,7 @@ This challenge is designed to teach you modern full-stack development with AI in
 3. **AI Chat Configuration**: Optimize Cursor's AI assistance settings
 
 **Key Benefits**:
+
 - Faster development with AI assistance
 - Consistent code quality and patterns
 - Learning through AI-guided development
@@ -224,12 +234,14 @@ This challenge is designed to teach you modern full-stack development with AI in
 </details>
 
 ### Phase 3: Full-Stack Development
+
 <details>
   <summary>😎 Frontend Development with AI Assistance</summary>
 
 **Objective**: Build a modern, responsive chat interface using AI-assisted development
 
 **What You'll Build**:
+
 - Real-time chat interface with streaming responses
 - Professional theme system with dark mode
 - Responsive design for all devices
@@ -237,6 +249,7 @@ This challenge is designed to teach you modern full-stack development with AI in
 - Error handling and loading states
 
 **Technologies Used**:
+
 - Next.js 14 with App Router
 - TypeScript for type safety
 - Tailwind CSS for styling
@@ -247,6 +260,7 @@ This challenge is designed to teach you modern full-stack development with AI in
 </details>
 
 ### Phase 4: Deployment & Production
+
 <details>
   <summary>🚀 Production Deployment with Vercel</summary>
 
@@ -266,12 +280,15 @@ This challenge is designed to teach you modern full-stack development with AI in
 ### Backend Endpoints
 
 #### Health Check
+
 ```http
 GET /api/health
 ```
+
 **Response**: `{"status": "ok"}`
 
 #### Chat Endpoint
+
 ```http
 POST /api/chat
 Content-Type: application/json
@@ -289,6 +306,7 @@ Content-Type: application/json
 ### Frontend API Client
 
 The frontend includes a comprehensive API client (`frontend/lib/api.ts`) with:
+
 - Type-safe request/response interfaces
 - Streaming response handling
 - Error management and retry logic
@@ -299,16 +317,19 @@ The frontend includes a comprehensive API client (`frontend/lib/api.ts`) with:
 ### Common Issues
 
 #### Backend Issues
+
 - **Port 8000 already in use**: Kill existing processes with `lsof -ti:8000 | xargs kill -9`
 - **Python version conflicts**: Ensure you're using Python 3.11+ with `python3 --version`
 - **Dependencies not found**: Run `pip3 install -r requirements.txt` in the `/api` directory
 
 #### Frontend Issues
+
 - **Port 3000 already in use**: Kill existing processes with `lsof -ti:3000 | xargs kill -9`
 - **Node modules issues**: Delete `node_modules` and run `npm install` again
 - **Tailwind CSS not working**: Ensure you're using Tailwind CSS v3.4, not v4
 
 #### API Connection Issues
+
 - **CORS errors**: Verify the backend is running on port 8000
 - **API key errors**: Check your OpenAI API key is valid and has credits
 - **Streaming not working**: Ensure the backend is returning proper streaming responses
@@ -369,81 +390,82 @@ Got everything in place? Let's move on!
 
 1. Fork [this](https://github.com/AI-Maker-Space/The-AI-Engineer-Challenge) repo!
 
-     ![image](https://i.imgur.com/bhjySNh.png)
+   ![image](https://i.imgur.com/bhjySNh.png)
 
 1. Clone your newly created repo.
 
-     ``` bash
-     # First, navigate to where you want the project folder to be created
-     cd PATH_TO_DESIRED_PARENT_DIRECTORY
+   ```bash
+   # First, navigate to where you want the project folder to be created
+   cd PATH_TO_DESIRED_PARENT_DIRECTORY
 
-     # Then clone (this will create a new folder called The-AI-Engineer-Challenge)
-     git clone git@github.com:<YOUR GITHUB USERNAME>/The-AI-Engineer-Challenge.git
-     ```
+   # Then clone (this will create a new folder called The-AI-Engineer-Challenge)
+   git clone git@github.com:<YOUR GITHUB USERNAME>/The-AI-Engineer-Challenge.git
+   ```
 
-     > Note: This command uses SSH. If you haven't set up SSH with GitHub, the command will fail. In that case, use HTTPS by replacing `git@github.com:` with `https://github.com/` - you'll then be prompted for your GitHub username and personal access token.
+   > Note: This command uses SSH. If you haven't set up SSH with GitHub, the command will fail. In that case, use HTTPS by replacing `git@github.com:` with `https://github.com/` - you'll then be prompted for your GitHub username and personal access token.
 
-2. Verify your git setup:
+1. Verify your git setup:
 
-     ```bash
-     # Check that your remote is set up correctly
-     git remote -v
+   ```bash
+   # Check that your remote is set up correctly
+   git remote -v
 
-     # Check the status of your repository
-     git status
+   # Check the status of your repository
+   git status
 
-     # See which branch you're on
-     git branch
-     ```
+   # See which branch you're on
+   git branch
+   ```
 
-     <!-- > Need more help with git? Check out our [Detailed Git Setup Guide](docs/GIT_SETUP.md) for a comprehensive walkthrough of git configuration and best practices. -->
+    <!-- > Need more help with git? Check out our [Detailed Git Setup Guide](docs/GIT_SETUP.md) for a comprehensive walkthrough of git configuration and best practices. -->
 
-3. Open the freshly cloned repository inside Cursor!
+1. Open the freshly cloned repository inside Cursor!
 
-     ```bash
-     cd The-AI-Engineering-Challenge
-     cursor .
-     ```
+   ```bash
+   cd The-AI-Engineering-Challenge
+   cursor .
+   ```
 
-4. Check out the existing backend code found in `/api/app.py`
+1. Check out the existing backend code found in `/api/app.py`
 
 </details>
 
 <details>
   <summary>🔥Setting Up for Vibe Coding Success </summary>
 
-While it is a bit counter-intuitive to set things up before jumping into vibe-coding - it's important to remember that there exists a gradient betweeen AI-Assisted Development and Vibe-Coding. We're only reaching *slightly* into AI-Assisted Development for this challenge, but it's worth it!
+While it is a bit counter-intuitive to set things up before jumping into vibe-coding - it's important to remember that there exists a gradient betweeen AI-Assisted Development and Vibe-Coding. We're only reaching _slightly_ into AI-Assisted Development for this challenge, but it's worth it!
 
 1. Check out the rules in `.cursor/rules/` and add theme-ing information like colour schemes in `frontend-rule.mdc`! You can be as expressive as you'd like in these rules!
-2. We're going to index some docs to make our application more likely to succeed. To do this - we're going to start with `CTRL+SHIFT+P` (or `CMD+SHIFT+P` on Mac) and we're going to type "custom doc" into the search bar. 
+2. We're going to index some docs to make our application more likely to succeed. To do this - we're going to start with `CTRL+SHIFT+P` (or `CMD+SHIFT+P` on Mac) and we're going to type "custom doc" into the search bar.
 
-     ![image](https://i.imgur.com/ILx3hZu.png)
+   ![image](https://i.imgur.com/ILx3hZu.png)
+
 3. We're then going to copy and paste `https://nextjs.org/docs` into the prompt.
 
-     ![image](https://i.imgur.com/psBjpQd.png)
+   ![image](https://i.imgur.com/psBjpQd.png)
 
 4. We're then going to use the default configs to add these docs to our available and indexed documents.
 
-     ![image](https://i.imgur.com/LULLeaF.png)
+   ![image](https://i.imgur.com/LULLeaF.png)
 
 5. After that - you will do the same with Vercel's documentation. After which you should see:
 
-     ![image](https://i.imgur.com/hjyXhhC.png) 
+   ![image](https://i.imgur.com/hjyXhhC.png)
 
 </details>
 
 <details>
   <summary>😎 Vibe Coding a Front End for the FastAPI Backend</summary>
 
-1. Use `Command-L` or `CTRL-L` to open the Cursor chat console. 
+1. Use `Command-L` or `CTRL-L` to open the Cursor chat console.
 
 2. Set the chat settings to the following:
 
-     ![image](https://i.imgur.com/LSgRSgF.png)
+   ![image](https://i.imgur.com/LSgRSgF.png)
 
 3. Ask Cursor to create a frontend for your application. Iterate as much as you like!
 
-4. Run the frontend using the instructions Cursor provided. 
+4. Run the frontend using the instructions Cursor provided.
 
 > NOTE: If you run into any errors, copy and paste them back into the Cursor chat window - and ask Cursor to fix them!
 
@@ -460,19 +482,19 @@ While it is a bit counter-intuitive to set things up before jumping into vibe-co
 
 3. Run the command:
 
-     ```bash
-     npm install -g vercel
-     ```
+   ```bash
+   npm install -g vercel
+   ```
 
 4. Run the command:
 
-     ```bash
-     vercel
-     ```
+   ```bash
+   vercel
+   ```
 
 5. Follow the in-terminal instructions. (Below is an example of what you will see!)
 
-     ![image](https://i.imgur.com/D1iKGCq.png)
+   ![image](https://i.imgur.com/D1iKGCq.png)
 
 6. Once the build is completed - head to the provided link and try out your app!
 
@@ -501,6 +523,7 @@ Share your deployed application and celebrate your achievement! Here's a templat
 🏗️ Today, I'm thrilled to announce that I've successfully built and shipped my first-ever LLM-powered application using Next.js, FastAPI, and the OpenAI API! 🖥️
 
 ✨ What I built:
+
 - Real-time AI chat interface with streaming responses
 - Professional UI with multiple themes and dark mode
 - Full-stack application deployed to production

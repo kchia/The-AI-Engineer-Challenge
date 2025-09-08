@@ -26,9 +26,9 @@ app.add_middleware(
 # This ensures incoming request data is properly validated
 class ChatRequest(BaseModel):
     developer_message: str  # Message from the developer/system
-    user_message: str      # Message from the user
+    user_message: str  # Message from the user
     model: Optional[str] = "gpt-4.1-mini"  # Optional model selection with default
-    api_key: str          # OpenAI API key for authentication
+    api_key: str  # OpenAI API key for authentication
 
 # Define the main chat endpoint that handles POST requests
 @app.post("/api/chat")
