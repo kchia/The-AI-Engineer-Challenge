@@ -12,6 +12,56 @@
 
 The AI Engineer Challenge is a hands-on learning experience designed to take you from zero to deploying your first Large Language Model (LLM) powered application. This project combines the power of **FastAPI**, **Next.js**, **OpenAI's GPT models**, and **Vercel** to create a full-stack chat application with real-time streaming responses.
 
+## ⚠️ Production Readiness Note
+
+**This is a learning prototype, not a production-ready application.** While functional for educational purposes, several aspects would need significant improvements for production deployment:
+
+### Current Limitations & Production Considerations
+
+**Prompt Processing & Classification**
+
+- The current preprocessing uses hardcoded string matching (`"read the following paragraph"` + ellipsis detection)
+- **Production approach**: Implement dynamic prompt classification using a separate classifier model or LLM call to identify prompt types and missing components
+- **Why**: Hardcoded patterns don't scale and miss edge cases that a trained classifier would catch
+
+**Error Handling & Resilience**
+
+- Limited error handling and fallback mechanisms
+- **Production approach**: Implement comprehensive error handling, graceful degradation when preprocessing fails, and robust retry logic
+- **Why**: Production systems need to handle failures gracefully without breaking user experience
+
+**Configuration & Scalability**
+
+- Fixed `temperature` and `max_tokens` values regardless of query type
+- **Production approach**: Dynamic parameter adjustment based on query type (creative tasks need higher temperature, analytical tasks need lower values)
+- **Why**: Different tasks require different AI behavior for optimal results
+
+**Content Management**
+
+- Hardcoded example content in preprocessing functions
+- **Production approach**: Use a template library or few-shot example database that can be updated without code changes
+- **Why**: Content should be manageable by non-developers and easily updated
+
+**Testing & Quality Assurance**
+
+- Limited testing coverage, especially for edge cases
+- **Production approach**: Comprehensive test suite covering edge cases, configurable thresholds, and user feedback loops
+- **Why**: Production systems need reliability and continuous improvement mechanisms
+
+**Security & Performance**
+
+- Missing security considerations like prompt injection protection and rate limiting
+- **Production approach**: Implement input sanitization, rate limiting, authentication, and monitoring
+- **Why**: Production systems face real security threats and performance requirements
+
+**Monitoring & Observability**
+
+- Basic logging without metrics or success rate tracking
+- **Production approach**: Comprehensive logging, metrics tracking, and performance monitoring
+- **Why**: Production systems need visibility into performance and user behavior
+
+This prototype serves as an excellent learning foundation, but production deployment would require addressing these architectural considerations for reliability, security, and scalability.
+
 ## 🏗️ Architecture
 
 ```mermaid
