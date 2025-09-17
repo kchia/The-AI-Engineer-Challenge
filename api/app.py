@@ -31,9 +31,10 @@ except Exception as e:
     AIMAKERSPACE_AVAILABLE = False
     print("Warning: aimakerspace modules failed to load: {}. PDF features will be disabled.".format(e))
 
-# Import our file processor and subject categorizer
+# Import our file processor, subject categorizer, and quiz generator
 from file_processor import file_processor
 from subject_categorizer import subject_categorizer
+from quiz_generator import create_quiz_generator
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="OpenAI Chat API")
@@ -288,6 +289,106 @@ async def get_subject_categories():
     return {
         "categories": subject_categorizer.get_all_categories(),
         "total_categories": len(subject_categorizer.get_all_categories())
+    }
+
+# Quiz generation endpoint
+@app.post("/api/generate-quiz")
+async def generate_quiz(request: dict):
+    """
+    Generate a quiz from educational content
+    
+    Request body should contain:
+    - content: The educational content to generate quiz from
+    - api_key: OpenAI API key
+    - num_questions: Number of questions (1-10, default: 5)
+    - question_types: List of question types (optional)
+    """
+    try:
+        content = request.get("content", "")
+        api_key = request.get("api_key", "")
+        num_questions = request.get("num_questions", 5)
+        question_types = request.get("question_types", ["multiple_choice", "true_false"])
+        
+        if not content or not content.strip():
+            return {
+                "success": False,
+                "error": "No content provided"
+            }
+        
+        if not api_key:
+            return {
+                "success": False,
+                "error": "OpenAI API key required"
+            }
+        
+        # Create quiz generator and generate quiz
+        quiz_generator = create_quiz_generator(api_key)
+        quiz_data = quiz_generator.generate_quiz(content, num_questions, question_types)
+        
+        return {
+            "success": True,
+            "quiz": quiz_data
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error generating quiz: {}".format(str(e)))
+
+# Study guide generation endpoint
+@app.post("/api/generate-study-guide")
+async def generate_study_guide(request: dict):
+    """
+    Generate a study guide from educational content
+    
+    Request body should contain:
+    - content: The educational content
+    - api_key: OpenAI API key
+    - subject_category: Optional subject category for context
+    """
+    try:
+        content = request.get("content", "")
+        api_key = request.get("api_key", "")
+        subject_category = request.get("subject_category", None)
+        
+        if not content or not content.strip():
+            return {
+                "success": False,
+                "error": "No content provided"
+            }
+        
+        if not api_key:
+            return {
+                "success": False,
+                "error": "OpenAI API key required"
+            }
+        
+        # Create quiz generator and generate study guide
+        quiz_generator = create_quiz_generator(api_key)
+        guide_data = quiz_generator.generate_study_guide(content, subject_category)
+        
+        return {
+            "success": True,
+            "study_guide": guide_data
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error generating study guide: {}".format(str(e)))
+
+# Get available question types
+@app.get("/api/quiz-question-types")
+async def get_question_types():
+    """Get list of available question types for quiz generation"""
+    return {
+        "question_types": ["multiple_choice", "true_false", "short_answer", "fill_blank"],
+        "descriptions": {
+            "multiple_choice": "Multiple choice questions with 4 options",
+            "true_false": "True or false questions",
+            "short_answer": "Short answer questions requiring brief responses",
+            "fill_blank": "Fill in the blank questions"
+        }
     }
 
 # Debug endpoint to check aimakerspace availability
