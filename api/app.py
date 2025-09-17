@@ -31,8 +31,9 @@ except Exception as e:
     AIMAKERSPACE_AVAILABLE = False
     print("Warning: aimakerspace modules failed to load: {}. PDF features will be disabled.".format(e))
 
-# Import our file processor
+# Import our file processor and subject categorizer
 from file_processor import file_processor
+from subject_categorizer import subject_categorizer
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="OpenAI Chat API")
@@ -197,6 +198,9 @@ async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)
         # Process file using our file processor
         text_content, chunks = file_processor.process_file(content, file.filename)
         
+        # Categorize the content
+        category_analysis = subject_categorizer.analyze_content(text_content)
+        
         # Create vector database
         if AIMAKERSPACE_AVAILABLE:
             pdf_context = VectorDatabase(api_key=api_key)
@@ -213,7 +217,10 @@ async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)
             "filename": pdf_filename, 
             "file_type": file_type,
             "chunks": len(chunks),
-            "text_length": len(text_content)
+            "text_length": len(text_content),
+            "subject_category": category_analysis["category"],
+            "category_confidence": category_analysis["confidence"],
+            "category_scores": category_analysis["scores"]
         }
         
     except HTTPException:
@@ -234,6 +241,53 @@ async def get_supported_file_types():
     return {
         "supported_types": SUPPORTED_FILE_TYPES,
         "extensions": list(SUPPORTED_FILE_TYPES.keys())
+    }
+
+# Subject categorization endpoint
+@app.post("/api/categorize-content")
+async def categorize_content(request: dict):
+    """
+    Categorize educational content by subject area
+    
+    Request body should contain:
+    - text: The text content to categorize
+    - confidence_threshold: Optional confidence threshold (default: 0.1)
+    """
+    try:
+        text = request.get("text", "")
+        confidence_threshold = request.get("confidence_threshold", 0.1)
+        
+        if not text or not text.strip():
+            return {
+                "category": "Other",
+                "confidence": 0.0,
+                "error": "No text content provided"
+            }
+        
+        # Categorize the content
+        analysis = subject_categorizer.analyze_content(text)
+        
+        return {
+            "success": True,
+            "category": analysis["category"],
+            "confidence": analysis["confidence"],
+            "scores": analysis["scores"],
+            "keywords_found": analysis["keywords_found"],
+            "total_keywords": analysis["total_keywords"],
+            "text_length": analysis["text_length"],
+            "available_categories": analysis["available_categories"]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error categorizing content: {}".format(str(e)))
+
+# Get available subject categories
+@app.get("/api/subject-categories")
+async def get_subject_categories():
+    """Get list of available subject categories"""
+    return {
+        "categories": subject_categorizer.get_all_categories(),
+        "total_categories": len(subject_categorizer.get_all_categories())
     }
 
 # Debug endpoint to check aimakerspace availability
