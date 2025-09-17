@@ -14,7 +14,6 @@ interface QuizGeneratorProps {
 export function QuizGenerator({ content, apiKey, subjectCategory, onClose }: QuizGeneratorProps) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isTakingQuiz, setIsTakingQuiz] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string | boolean>>({});
   const [showResults, setShowResults] = useState(false);
