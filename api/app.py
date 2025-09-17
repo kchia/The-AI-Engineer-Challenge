@@ -115,8 +115,31 @@ def get_pdf_context(query: str, k: int = 3):
         return []
     
     try:
-        relevant_chunks = pdf_context.search_by_text(query, k=k, return_as_text=True)
-        return relevant_chunks
+        # Check if pdf_context is a VectorDatabase object
+        if hasattr(pdf_context, 'search_by_text'):
+            relevant_chunks = pdf_context.search_by_text(query, k=k, return_as_text=True)
+            return relevant_chunks
+        # Fallback for dictionary format
+        elif isinstance(pdf_context, dict) and 'chunks' in pdf_context:
+            # Simple text search in chunks for fallback mode
+            chunks = pdf_context['chunks']
+            query_lower = query.lower()
+            relevant_chunks = []
+            
+            for chunk in chunks:
+                if query_lower in chunk.lower():
+                    relevant_chunks.append(chunk)
+                    if len(relevant_chunks) >= k:
+                        break
+            
+            # If no exact matches, return first few chunks
+            if not relevant_chunks and chunks:
+                relevant_chunks = chunks[:k]
+            
+            return relevant_chunks
+        else:
+            print(f"Unknown pdf_context type: {type(pdf_context)}")
+            return []
     except Exception as e:
         print(f"Error retrieving PDF context: {e}")
         return []
