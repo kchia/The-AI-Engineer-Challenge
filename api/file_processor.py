@@ -158,21 +158,27 @@ class FileProcessor:
     
     def split_text_into_chunks(self, text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[str]:
         """Split text into chunks for vector database"""
+        print(f"DEBUG: split_text_into_chunks called with text length: {len(text)}")
+        print(f"DEBUG: AIMAKERSPACE_AVAILABLE: {AIMAKERSPACE_AVAILABLE}")
+        
         if not text or not text.strip():
+            print("DEBUG: No text to chunk")
             return []
             
         if not AIMAKERSPACE_AVAILABLE:
             # Simple text splitting without aimakerspace
             words = text.split()
+            print(f"DEBUG: Split into {len(words)} words")
             chunks = []
             current_chunk = []
             current_size = 0
             
-            for word in words:
+            for i, word in enumerate(words):
                 if current_size + len(word) + 1 > chunk_size and current_chunk:
                     chunk_text = ' '.join(current_chunk)
                     if chunk_text.strip():  # Only add non-empty chunks
                         chunks.append(chunk_text)
+                        print(f"DEBUG: Added chunk {len(chunks)} with {len(chunk_text)} chars")
                     # Start new chunk with overlap
                     overlap_words = current_chunk[-chunk_overlap//10:] if len(current_chunk) > chunk_overlap//10 else current_chunk
                     current_chunk = overlap_words + [word]
@@ -180,19 +186,74 @@ class FileProcessor:
                 else:
                     current_chunk.append(word)
                     current_size += len(word) + 1
+                
+                if i < 10:  # Debug first 10 words
+                    print(f"DEBUG: Word {i}: '{word}' (current_size: {current_size})")
             
             if current_chunk:
                 chunk_text = ' '.join(current_chunk)
                 if chunk_text.strip():  # Only add non-empty chunks
                     chunks.append(chunk_text)
+                    print(f"DEBUG: Added final chunk {len(chunks)} with {len(chunk_text)} chars")
             
+            print(f"DEBUG: Total chunks created: {len(chunks)}")
             return chunks
         else:
             # Use aimakerspace for better chunking
-            splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-            raw_chunks = splitter.split([text])
-            # Filter out empty chunks and ensure they are strings
-            return [chunk for chunk in raw_chunks if chunk and isinstance(chunk, str) and chunk.strip()]
+            print("DEBUG: Using aimakerspace CharacterTextSplitter")
+            try:
+                splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+                raw_chunks = splitter.split([text])
+                print(f"DEBUG: CharacterTextSplitter returned {len(raw_chunks)} raw chunks")
+                
+                # Debug each raw chunk
+                for i, chunk in enumerate(raw_chunks):
+                    print(f"DEBUG: Raw chunk {i}: type={type(chunk)}, len={len(str(chunk)) if chunk else 0}")
+                    print(f"DEBUG: Raw chunk {i} content: '{str(chunk)[:100]}...'")
+                    print(f"DEBUG: Raw chunk {i} is string: {isinstance(chunk, str)}")
+                    print(f"DEBUG: Raw chunk {i} has content: {bool(chunk and str(chunk).strip())}")
+                
+                # Filter out empty chunks and ensure they are strings
+                filtered_chunks = []
+                for i, chunk in enumerate(raw_chunks):
+                    chunk_str = str(chunk) if chunk is not None else ""
+                    if chunk_str.strip():
+                        filtered_chunks.append(chunk_str)
+                        print(f"DEBUG: Added chunk {i} to filtered chunks")
+                    else:
+                        print(f"DEBUG: Skipped chunk {i} (empty or whitespace)")
+                
+                print(f"DEBUG: After filtering: {len(filtered_chunks)} chunks")
+                if filtered_chunks:
+                    print(f"DEBUG: First filtered chunk: {filtered_chunks[0][:200]}")
+                return filtered_chunks
+            except Exception as e:
+                print(f"DEBUG: CharacterTextSplitter failed: {e}")
+                print("DEBUG: Falling back to simple chunking")
+                # Fallback to simple chunking
+                words = text.split()
+                chunks = []
+                current_chunk = []
+                current_size = 0
+                
+                for word in words:
+                    if current_size + len(word) + 1 > chunk_size and current_chunk:
+                        chunk_text = ' '.join(current_chunk)
+                        if chunk_text.strip():
+                            chunks.append(chunk_text)
+                        current_chunk = [word]
+                        current_size = len(word)
+                    else:
+                        current_chunk.append(word)
+                        current_size += len(word) + 1
+                
+                if current_chunk:
+                    chunk_text = ' '.join(current_chunk)
+                    if chunk_text.strip():
+                        chunks.append(chunk_text)
+                
+                print(f"DEBUG: Fallback created {len(chunks)} chunks")
+                return chunks
     
     def process_file(self, file_content: bytes, filename: str) -> Tuple[str, List[str]]:
         """Process uploaded file and return text content and chunks"""
@@ -207,10 +268,17 @@ class FileProcessor:
         
         try:
             # Extract text
+            print(f"DEBUG: Extracting text from {filename}")
             text_content = self.extract_text(tmp_file_path, filename)
+            print(f"DEBUG: Extracted text length: {len(text_content) if text_content else 0}")
+            print(f"DEBUG: Text preview: {text_content[:200] if text_content else 'No text'}")
             
             # Split into chunks
+            print(f"DEBUG: Splitting text into chunks")
             chunks = self.split_text_into_chunks(text_content)
+            print(f"DEBUG: Created {len(chunks)} chunks")
+            if chunks:
+                print(f"DEBUG: First chunk preview: {chunks[0][:200]}")
             
             return text_content, chunks
         

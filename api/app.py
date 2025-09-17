@@ -111,34 +111,48 @@ def preprocess_user_message(user_message: str) -> str:
 def get_pdf_context(query: str, k: int = 3):
     """Get relevant context from PDF if available"""
     global pdf_context
+    print(f"DEBUG: get_pdf_context called with query: '{query}'")
+    print(f"DEBUG: pdf_context exists: {pdf_context is not None}")
+    print(f"DEBUG: pdf_context type: {type(pdf_context)}")
+    
     if not pdf_context:
+        print("DEBUG: No pdf_context available")
         return []
     
     try:
         # Check if pdf_context is a VectorDatabase object
         if hasattr(pdf_context, 'search_by_text'):
+            print("DEBUG: Using VectorDatabase search")
             relevant_chunks = pdf_context.search_by_text(query, k=k, return_as_text=True)
+            print(f"DEBUG: VectorDatabase returned {len(relevant_chunks)} chunks")
             return relevant_chunks
         # Fallback for dictionary format
         elif isinstance(pdf_context, dict) and 'chunks' in pdf_context:
-            # Simple text search in chunks for fallback mode
+            print("DEBUG: Using dictionary fallback search")
             chunks = pdf_context['chunks']
+            print(f"DEBUG: Available chunks: {len(chunks)}")
+            print(f"DEBUG: First chunk preview: {chunks[0][:200] if chunks else 'No chunks'}")
+            
             query_lower = query.lower()
             relevant_chunks = []
             
-            for chunk in chunks:
+            for i, chunk in enumerate(chunks):
+                print(f"DEBUG: Checking chunk {i}: '{chunk[:100]}...'")
                 if query_lower in chunk.lower():
+                    print(f"DEBUG: Found match in chunk {i}")
                     relevant_chunks.append(chunk)
                     if len(relevant_chunks) >= k:
                         break
             
             # If no exact matches, return first few chunks
             if not relevant_chunks and chunks:
+                print("DEBUG: No exact matches, returning first few chunks")
                 relevant_chunks = chunks[:k]
             
+            print(f"DEBUG: Returning {len(relevant_chunks)} chunks")
             return relevant_chunks
         else:
-            print(f"Unknown pdf_context type: {type(pdf_context)}")
+            print(f"DEBUG: Unknown pdf_context type: {type(pdf_context)}")
             return []
     except Exception as e:
         print(f"Error retrieving PDF context: {e}")
@@ -171,7 +185,10 @@ async def chat(request: ChatRequest):
         client = OpenAI(api_key=request.api_key)
         
         # Get PDF context if available
+        print(f"DEBUG: About to call get_pdf_context with: '{request.user_message}'")
+        print("DEBUG: Calling get_pdf_context now...")
         pdf_chunks = get_pdf_context(request.user_message)
+        print("DEBUG: get_pdf_context returned")
         print(f"DEBUG: PDF chunks retrieved: {len(pdf_chunks) if pdf_chunks else 0}")
         print(f"DEBUG: PDF filename: {pdf_filename}")
         if pdf_chunks:
