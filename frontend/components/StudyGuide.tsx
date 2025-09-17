@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { apiClient, GenerateStudyGuideRequest, StudyGuide } from "@/lib/api";
+import { apiClient, GenerateStudyGuideRequest, type StudyGuide } from "@/lib/api";
 import { Loader2, BookOpen, CheckCircle, XCircle, Download, Clock, Lightbulb, Target } from "lucide-react";
 
 interface StudyGuideProps {
