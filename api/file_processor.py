@@ -158,6 +158,9 @@ class FileProcessor:
     
     def split_text_into_chunks(self, text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[str]:
         """Split text into chunks for vector database"""
+        if not text or not text.strip():
+            return []
+            
         if not AIMAKERSPACE_AVAILABLE:
             # Simple text splitting without aimakerspace
             words = text.split()
@@ -167,7 +170,9 @@ class FileProcessor:
             
             for word in words:
                 if current_size + len(word) + 1 > chunk_size and current_chunk:
-                    chunks.append(' '.join(current_chunk))
+                    chunk_text = ' '.join(current_chunk)
+                    if chunk_text.strip():  # Only add non-empty chunks
+                        chunks.append(chunk_text)
                     # Start new chunk with overlap
                     overlap_words = current_chunk[-chunk_overlap//10:] if len(current_chunk) > chunk_overlap//10 else current_chunk
                     current_chunk = overlap_words + [word]
@@ -177,13 +182,17 @@ class FileProcessor:
                     current_size += len(word) + 1
             
             if current_chunk:
-                chunks.append(' '.join(current_chunk))
+                chunk_text = ' '.join(current_chunk)
+                if chunk_text.strip():  # Only add non-empty chunks
+                    chunks.append(chunk_text)
             
             return chunks
         else:
             # Use aimakerspace for better chunking
             splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-            return splitter.split([text])
+            raw_chunks = splitter.split([text])
+            # Filter out empty chunks and ensure they are strings
+            return [chunk for chunk in raw_chunks if chunk and isinstance(chunk, str) and chunk.strip()]
     
     def process_file(self, file_content: bytes, filename: str) -> Tuple[str, List[str]]:
         """Process uploaded file and return text content and chunks"""

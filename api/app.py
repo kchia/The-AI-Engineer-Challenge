@@ -204,8 +204,14 @@ async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)
         
         # Create vector database
         if AIMAKERSPACE_AVAILABLE:
-            pdf_context = VectorDatabase(api_key=api_key)
-            await pdf_context.abuild_from_list(chunks)
+            # Filter out empty chunks and ensure they are strings
+            valid_chunks = [chunk for chunk in chunks if chunk and isinstance(chunk, str) and chunk.strip()]
+            if valid_chunks:
+                pdf_context = VectorDatabase(api_key=api_key)
+                await pdf_context.abuild_from_list(valid_chunks)
+            else:
+                # Fallback if no valid chunks
+                pdf_context = {"chunks": chunks, "text": text_content}
         else:
             # Fallback: store chunks in memory for basic functionality
             pdf_context = {"chunks": chunks, "text": text_content}

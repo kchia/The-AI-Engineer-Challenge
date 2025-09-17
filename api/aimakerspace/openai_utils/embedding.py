@@ -30,9 +30,18 @@ class EmbeddingModel:
 
     async def async_get_embeddings(self, list_of_text: Iterable[str]) -> List[List[float]]:
         """Return embeddings for ``list_of_text`` using the async client."""
+        
+        # Filter out empty or invalid text
+        valid_texts = [text for text in list_of_text if text and isinstance(text, str) and text.strip()]
+        
+        if not valid_texts:
+            raise ValueError("No valid text provided for embedding generation")
+        
+        # Limit text length to avoid API errors
+        valid_texts = [text[:8000] for text in valid_texts]  # OpenAI has a limit on input length
 
         embedding_response = await self.async_client.embeddings.create(
-            input=list(list_of_text), model=self.embeddings_model_name
+            input=valid_texts, model=self.embeddings_model_name
         )
 
         return [item.embedding for item in embedding_response.data]
