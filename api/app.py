@@ -1,5 +1,5 @@
 # Import required FastAPI components for building the API
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 # Import Pydantic for data validation and settings management
@@ -7,7 +7,29 @@ from pydantic import BaseModel
 # Import OpenAI client for interacting with OpenAI's API
 from openai import OpenAI
 import os
+import tempfile
+import sys
 from typing import Optional
+
+# Add the current directory to Python path to find aimakerspace modules
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+# Import aimakerspace modules (now included in the project)
+try:
+    from aimakerspace.text_utils import PDFLoader, CharacterTextSplitter
+    from aimakerspace.vectordatabase import VectorDatabase
+    AIMAKERSPACE_AVAILABLE = True
+    print("aimakerspace modules loaded successfully")
+except ImportError as e:
+    # Fallback for deployment when aimakerspace is not available
+    AIMAKERSPACE_AVAILABLE = False
+    print(f"Warning: aimakerspace modules not available: {e}. PDF features will be disabled.")
+except Exception as e:
+    # Catch any other errors during import
+    AIMAKERSPACE_AVAILABLE = False
+    print(f"Warning: aimakerspace modules failed to load: {e}. PDF features will be disabled.")
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="OpenAI Chat API")
@@ -21,6 +43,10 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers in requests
 )
+
+# Global variables for PDF context
+pdf_context = None
+pdf_filename = None
 
 # Define the data model for chat requests using Pydantic
 # This ensures incoming request data is properly validated
@@ -57,6 +83,20 @@ def preprocess_user_message(user_message: str) -> str:
     print(f"DEBUG: Processed user message: '{user_message}'")  # Debug logging
     return user_message
 
+# Helper function to get PDF context
+def get_pdf_context(query: str, k: int = 3):
+    """Get relevant context from PDF if available"""
+    global pdf_context
+    if not pdf_context:
+        return []
+    
+    try:
+        relevant_chunks = pdf_context.search_by_text(query, k=k, return_as_text=True)
+        return relevant_chunks
+    except Exception as e:
+        print(f"Error retrieving PDF context: {e}")
+        return []
+
 # Enhanced developer message
 def get_enhanced_developer_message(original_developer_message: str) -> str:
     """Add instructions for handling incomplete prompts"""
@@ -83,8 +123,17 @@ async def chat(request: ChatRequest):
         # Initialize OpenAI client with the provided API key
         client = OpenAI(api_key=request.api_key)
         
+        # Get PDF context if available
+        pdf_chunks = get_pdf_context(request.user_message)
+        
+        # Modify developer message to include PDF context
+        enhanced_developer_message = request.developer_message
+        if pdf_chunks and pdf_filename:
+            context = "\n\n".join(pdf_chunks)
+            enhanced_developer_message += f"\n\nUse this PDF context to answer questions about '{pdf_filename}':\n{context}"
+        
         # Preprocess messages
-        enhanced_developer_message = get_enhanced_developer_message(request.developer_message)
+        enhanced_developer_message = get_enhanced_developer_message(enhanced_developer_message)
         processed_user_message = preprocess_user_message(request.user_message)
         
         # Create an async generator function for streaming responses
@@ -113,10 +162,115 @@ async def chat(request: ChatRequest):
         # Handle any errors that occur during processing
         raise HTTPException(status_code=500, detail=str(e))
 
+# PDF upload endpoint
+@app.post("/api/upload-pdf")
+async def upload_pdf(api_key: str = Form(...), file: UploadFile = File(...)):
+    """Upload and process a PDF file"""
+    global pdf_context, pdf_filename
+    
+    if not AIMAKERSPACE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="PDF processing is currently unavailable. The aimakerspace modules are not properly loaded in this deployment. Please contact support or try again later.")
+    
+    try:
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="File must be a PDF")
+        
+        # Save and process PDF
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+            content = await file.read()
+            tmp_file.write(content)
+            tmp_file_path = tmp_file.name
+        
+        # Load PDF
+        pdf_loader = PDFLoader(tmp_file_path)
+        pdf_loader.load_file()
+        
+        if not pdf_loader.documents:
+            raise ValueError("No content extracted from PDF")
+        
+        # Split into chunks
+        splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        chunks = splitter.split(pdf_loader.documents[0])
+        
+        # Create vector database
+        pdf_context = VectorDatabase(api_key=api_key)
+        await pdf_context.abuild_from_list(chunks)
+        pdf_filename = file.filename
+        
+        # Clean up
+        os.unlink(tmp_file_path)
+        
+        return {"success": True, "filename": pdf_filename, "chunks": len(chunks)}
+        
+    except Exception as e:
+        if 'tmp_file_path' in locals():
+            try:
+                os.unlink(tmp_file_path)
+            except:
+                pass
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Define a health check endpoint to verify API status
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+# Debug endpoint to check aimakerspace availability
+@app.get("/api/debug/aimakerspace")
+async def debug_aimakerspace():
+    """Debug endpoint to check aimakerspace module availability"""
+    import sys
+    import os
+
+    debug_info = {
+        "aimakerspace_available": AIMAKERSPACE_AVAILABLE,
+        "python_version": sys.version,
+        "python_path": sys.path,
+        "current_directory": os.getcwd(),
+        "api_directory_contents": []
+    }
+
+    try:
+        api_dir = os.path.dirname(os.path.abspath(__file__))
+        debug_info["api_directory_contents"] = os.listdir(api_dir)
+
+        aimakerspace_dir = os.path.join(api_dir, "aimakerspace")
+        if os.path.exists(aimakerspace_dir):
+            debug_info["aimakerspace_directory_contents"] = os.listdir(aimakerspace_dir)
+        else:
+            debug_info["aimakerspace_directory_exists"] = False
+    except Exception as e:
+        debug_info["directory_scan_error"] = str(e)
+
+    # Try individual imports
+    import_results = {}
+    try:
+        import aimakerspace
+        import_results["aimakerspace_base"] = "success"
+    except Exception as e:
+        import_results["aimakerspace_base"] = str(e)
+
+    try:
+        from aimakerspace.text_utils import PDFLoader
+        import_results["pdf_loader"] = "success"
+    except Exception as e:
+        import_results["pdf_loader"] = str(e)
+
+    try:
+        from aimakerspace.vectordatabase import VectorDatabase
+        import_results["vector_database"] = "success"
+    except Exception as e:
+        import_results["vector_database"] = str(e)
+
+    try:
+        from aimakerspace.openai_utils.embedding import EmbeddingModel
+        import_results["embedding_model"] = "success"
+    except Exception as e:
+        import_results["embedding_model"] = str(e)
+
+    debug_info["import_results"] = import_results
+
+    return debug_info
 
 # Entry point for running the application directly
 if __name__ == "__main__":

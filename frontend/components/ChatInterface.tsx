@@ -15,6 +15,8 @@ export function ChatInterface() {
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [isUploadingPDF, setIsUploadingPDF] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load API key from localStorage on mount
@@ -119,6 +121,51 @@ export function ChatInterface() {
     setError(null);
   };
 
+  const handlePDFUpload = async (file: File) => {
+    if (!apiKey.trim()) {
+      setError("Please enter your OpenAI API key first");
+      return;
+    }
+
+    setIsUploadingPDF(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+
+      // Use the same API base URL logic as the API client
+      const API_BASE_URL = process.env.NODE_ENV === 'production' 
+        ? '' 
+        : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
+      
+      console.log('PDF upload API_BASE_URL:', API_BASE_URL); // Debug log
+      
+      const response = await fetch(`${API_BASE_URL}/api/upload-pdf`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${errorText}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setPdfFile(file);
+        setError(null);
+      } else {
+        throw new Error("Upload failed");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setIsUploadingPDF(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Settings Sidebar */}
@@ -144,6 +191,23 @@ export function ChatInterface() {
             onTestConnection={handleTestConnection}
           />
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-text-primary">PDF Document (Optional)</label>
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => e.target.files?.[0] && handlePDFUpload(e.target.files[0])}
+              disabled={isUploadingPDF}
+              className="w-full p-2 border border-border rounded bg-background text-text-primary"
+            />
+            {pdfFile && (
+              <p className="text-xs text-text-secondary">Loaded: {pdfFile.name}</p>
+            )}
+            {isUploadingPDF && (
+              <p className="text-xs text-text-secondary">Processing PDF...</p>
+            )}
+          </div>
+
           <ThemeSelector />
 
           <div className="pt-4 border-t border-border">
@@ -162,9 +226,12 @@ export function ChatInterface() {
             <h1 className="text-xl font-semibold text-text-primary">
               AI Chat Assistant
             </h1>
-            <p className="text-sm text-text-secondary">
-              {isConnected ? "Connected" : "Disconnected"}
-            </p>
+            <div className="text-sm text-text-secondary">
+              <p>{isConnected ? "Connected" : "Disconnected"}</p>
+              {pdfFile && (
+                <p className="text-xs mt-1">📄 {pdfFile.name}</p>
+              )}
+            </div>
           </div>
           <button
             onClick={() => setShowSettings(true)}
@@ -183,10 +250,13 @@ export function ChatInterface() {
                   <span className="text-2xl">🤖</span>
                 </div>
                 <h3 className="text-lg font-medium text-text-primary mb-2">
-                  Welcome to AI Chat
+                  {pdfFile ? `Chat with ${pdfFile.name}` : "Welcome to AI Chat"}
                 </h3>
                 <p className="text-text-secondary mb-4">
-                  Start a conversation by typing a message below.
+                  {pdfFile 
+                    ? "Ask questions about the uploaded PDF document."
+                    : "Start a conversation by typing a message below."
+                  }
                 </p>
                 {!apiKey && (
                   <p className="text-sm text-warning">
