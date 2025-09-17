@@ -25,11 +25,14 @@ try:
 except ImportError as e:
     # Fallback for deployment when aimakerspace is not available
     AIMAKERSPACE_AVAILABLE = False
-    print(f"Warning: aimakerspace modules not available: {e}. PDF features will be disabled.")
+    print("Warning: aimakerspace modules not available: {}. PDF features will be disabled.".format(e))
 except Exception as e:
     # Catch any other errors during import
     AIMAKERSPACE_AVAILABLE = False
-    print(f"Warning: aimakerspace modules failed to load: {e}. PDF features will be disabled.")
+    print("Warning: aimakerspace modules failed to load: {}. PDF features will be disabled.".format(e))
+
+# Import our file processor
+from file_processor import file_processor
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="OpenAI Chat API")
@@ -187,94 +190,37 @@ async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)
     """Upload and process educational documents (PDF, TXT, DOCX, MD)"""
     global pdf_context, pdf_filename
     
-    if not AIMAKERSPACE_AVAILABLE:
-        raise HTTPException(status_code=503, detail="Document processing is currently unavailable. The aimakerspace modules are not properly loaded in this deployment. Please contact support or try again later.")
-    
     try:
-        # Check if file type is supported
-        if not is_supported_file_type(file.filename):
-            supported_types = ', '.join(SUPPORTED_FILE_TYPES.keys())
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Unsupported file type. Supported types: {supported_types}"
-            )
+        # Read file content
+        content = await file.read()
         
-        # Get file type and extension
-        file_type = get_file_type(file.filename)
-        file_ext = os.path.splitext(file.filename.lower())[1]
-        
-        # Save file with appropriate extension
-        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
-            content = await file.read()
-            tmp_file.write(content)
-            tmp_file_path = tmp_file.name
-        
-        # Extract text based on file type
-        if file_ext == '.pdf':
-            # Load PDF using existing logic
-            pdf_loader = PDFLoader(tmp_file_path)
-            pdf_loader.load_file()
-            
-            if not pdf_loader.documents:
-                raise ValueError("No content extracted from PDF")
-            
-            # Split into chunks
-            splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-            chunks = splitter.split(pdf_loader.documents[0])
-            
-        elif file_ext in ['.txt', '.md']:
-            # Load text files
-            with open(tmp_file_path, 'r', encoding='utf-8') as f:
-                text_content = f.read()
-            
-            if not text_content.strip():
-                raise ValueError("No content extracted from text file")
-            
-            # Split into chunks
-            splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-            chunks = splitter.split([text_content])
-            
-        elif file_ext == '.docx':
-            # Load DOCX files
-            try:
-                from docx import Document
-                doc = Document(tmp_file_path)
-                text_content = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
-                
-                if not text_content.strip():
-                    raise ValueError("No content extracted from DOCX file")
-                
-                # Split into chunks
-                splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-                chunks = splitter.split([text_content])
-                
-            except ImportError:
-                raise HTTPException(status_code=500, detail="DOCX processing requires python-docx package")
-        else:
-            raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_ext}")
+        # Process file using our file processor
+        text_content, chunks = file_processor.process_file(content, file.filename)
         
         # Create vector database
-        pdf_context = VectorDatabase(api_key=api_key)
-        await pdf_context.abuild_from_list(chunks)
-        pdf_filename = file.filename
+        if AIMAKERSPACE_AVAILABLE:
+            pdf_context = VectorDatabase(api_key=api_key)
+            await pdf_context.abuild_from_list(chunks)
+        else:
+            # Fallback: store chunks in memory for basic functionality
+            pdf_context = {"chunks": chunks, "text": text_content}
         
-        # Clean up
-        os.unlink(tmp_file_path)
+        pdf_filename = file.filename
+        file_type = get_file_type(file.filename)
         
         return {
             "success": True, 
             "filename": pdf_filename, 
             "file_type": file_type,
-            "chunks": len(chunks)
+            "chunks": len(chunks),
+            "text_length": len(text_content)
         }
         
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
-        if 'tmp_file_path' in locals():
-            try:
-                os.unlink(tmp_file_path)
-            except:
-                pass
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Error processing file: {}".format(str(e)))
 
 # Define a health check endpoint to verify API status
 @app.get("/api/health")
