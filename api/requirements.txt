@@ -7,3 +7,5 @@ PyPDF2
 numpy
 python-dotenv
 aiohttp
+python-docx==0.8.11
+markdown==3.5.1

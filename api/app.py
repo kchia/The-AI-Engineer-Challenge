@@ -44,9 +44,28 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers in requests
 )
 
-# Global variables for PDF context
+# Global variables for document context
 pdf_context = None
 pdf_filename = None
+
+# Supported file types for educational content
+SUPPORTED_FILE_TYPES = {
+    '.pdf': 'PDF Document',
+    '.txt': 'Text Document', 
+    '.docx': 'Word Document',
+    '.md': 'Markdown Document'
+}
+
+def get_file_type(filename: str) -> str:
+    """Get file type from filename extension"""
+    if not filename:
+        return None
+    ext = os.path.splitext(filename.lower())[1]
+    return SUPPORTED_FILE_TYPES.get(ext, None)
+
+def is_supported_file_type(filename: str) -> bool:
+    """Check if file type is supported"""
+    return get_file_type(filename) is not None
 
 # Define the data model for chat requests using Pydantic
 # This ensures incoming request data is properly validated
@@ -162,35 +181,77 @@ async def chat(request: ChatRequest):
         # Handle any errors that occur during processing
         raise HTTPException(status_code=500, detail=str(e))
 
-# PDF upload endpoint
-@app.post("/api/upload-pdf")
-async def upload_pdf(api_key: str = Form(...), file: UploadFile = File(...)):
-    """Upload and process a PDF file"""
+# Document upload endpoint (supports multiple file types)
+@app.post("/api/upload-document")
+async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)):
+    """Upload and process educational documents (PDF, TXT, DOCX, MD)"""
     global pdf_context, pdf_filename
     
     if not AIMAKERSPACE_AVAILABLE:
-        raise HTTPException(status_code=503, detail="PDF processing is currently unavailable. The aimakerspace modules are not properly loaded in this deployment. Please contact support or try again later.")
+        raise HTTPException(status_code=503, detail="Document processing is currently unavailable. The aimakerspace modules are not properly loaded in this deployment. Please contact support or try again later.")
     
     try:
-        if not file.filename.lower().endswith('.pdf'):
-            raise HTTPException(status_code=400, detail="File must be a PDF")
+        # Check if file type is supported
+        if not is_supported_file_type(file.filename):
+            supported_types = ', '.join(SUPPORTED_FILE_TYPES.keys())
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Unsupported file type. Supported types: {supported_types}"
+            )
         
-        # Save and process PDF
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+        # Get file type and extension
+        file_type = get_file_type(file.filename)
+        file_ext = os.path.splitext(file.filename.lower())[1]
+        
+        # Save file with appropriate extension
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
             content = await file.read()
             tmp_file.write(content)
             tmp_file_path = tmp_file.name
         
-        # Load PDF
-        pdf_loader = PDFLoader(tmp_file_path)
-        pdf_loader.load_file()
-        
-        if not pdf_loader.documents:
-            raise ValueError("No content extracted from PDF")
-        
-        # Split into chunks
-        splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        chunks = splitter.split(pdf_loader.documents[0])
+        # Extract text based on file type
+        if file_ext == '.pdf':
+            # Load PDF using existing logic
+            pdf_loader = PDFLoader(tmp_file_path)
+            pdf_loader.load_file()
+            
+            if not pdf_loader.documents:
+                raise ValueError("No content extracted from PDF")
+            
+            # Split into chunks
+            splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            chunks = splitter.split(pdf_loader.documents[0])
+            
+        elif file_ext in ['.txt', '.md']:
+            # Load text files
+            with open(tmp_file_path, 'r', encoding='utf-8') as f:
+                text_content = f.read()
+            
+            if not text_content.strip():
+                raise ValueError("No content extracted from text file")
+            
+            # Split into chunks
+            splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            chunks = splitter.split([text_content])
+            
+        elif file_ext == '.docx':
+            # Load DOCX files
+            try:
+                from docx import Document
+                doc = Document(tmp_file_path)
+                text_content = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+                
+                if not text_content.strip():
+                    raise ValueError("No content extracted from DOCX file")
+                
+                # Split into chunks
+                splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                chunks = splitter.split([text_content])
+                
+            except ImportError:
+                raise HTTPException(status_code=500, detail="DOCX processing requires python-docx package")
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported file type: {file_ext}")
         
         # Create vector database
         pdf_context = VectorDatabase(api_key=api_key)
@@ -200,7 +261,12 @@ async def upload_pdf(api_key: str = Form(...), file: UploadFile = File(...)):
         # Clean up
         os.unlink(tmp_file_path)
         
-        return {"success": True, "filename": pdf_filename, "chunks": len(chunks)}
+        return {
+            "success": True, 
+            "filename": pdf_filename, 
+            "file_type": file_type,
+            "chunks": len(chunks)
+        }
         
     except Exception as e:
         if 'tmp_file_path' in locals():
@@ -214,6 +280,15 @@ async def upload_pdf(api_key: str = Form(...), file: UploadFile = File(...)):
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+# Get supported file types for educational content
+@app.get("/api/supported-file-types")
+async def get_supported_file_types():
+    """Get list of supported file types for educational content"""
+    return {
+        "supported_types": SUPPORTED_FILE_TYPES,
+        "extensions": list(SUPPORTED_FILE_TYPES.keys())
+    }
 
 # Debug endpoint to check aimakerspace availability
 @app.get("/api/debug/aimakerspace")
