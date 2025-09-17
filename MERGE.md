@@ -1,36 +1,50 @@
-# Simple PDF RAG Integration - Merge Instructions
+# Educational Content Assistant - Merge Instructions
 
-This feature branch adds simple PDF upload and RAG (Retrieval-Augmented Generation) functionality to the AI Chat application using the `aimakerspace` library.
+This feature branch adds comprehensive educational content processing functionality to the AI Chat application, including PDF upload, subject categorization, study guide generation, and quiz creation.
 
 ## Changes Made
 
 ### Backend Changes
 
-- **Updated `api/requirements.txt`**: Added PyPDF2, numpy, and python-dotenv dependencies
+- **Updated `api/requirements.txt`**: Added comprehensive dependencies for file processing
 - **Updated `api/app.py`**:
-  - Added PDF upload endpoint (`/api/upload-pdf`)
-  - Modified existing chat endpoint to use PDF context when available
-  - Added simple PDF context retrieval using aimakerspace library
+  - Added file upload endpoint (`/api/upload-file`) supporting PDF, DOCX, and TXT files
+  - Added subject categorization endpoint (`/api/categorize-subject`)
+  - Added study guide generation endpoint (`/api/generate-study-guide`)
+  - Added quiz generation endpoint (`/api/generate-quiz`)
+  - Integrated with aimakerspace library for advanced text processing
 
 ### Frontend Changes
 
 - **Updated `frontend/components/ChatInterface.tsx`**:
-  - Added simple PDF file upload in settings panel
-  - Added PDF status display in header
-  - Updated welcome message to reflect PDF mode
+  - Added file upload functionality in settings panel
+  - Added subject categorization display
+  - Integrated study guide and quiz generation buttons
+- **Added `frontend/components/StudyGuide.tsx`**: Complete study guide generation interface
+- **Added `frontend/components/QuizGenerator.tsx`**: Interactive quiz creation and taking interface
+- **Updated `frontend/lib/api.ts`**: Added API client methods for all new endpoints
 
 ## New Features
 
-1. **PDF Upload**: Users can upload PDF files through the settings panel
-2. **Automatic RAG**: PDF content is automatically used as context when available
-3. **Simple UI**: Clean, minimal interface without complex state management
+1. **Multi-format File Upload**: Support for PDF, DOCX, and TXT files
+2. **Subject Categorization**: Automatic categorization of educational content
+3. **Study Guide Generation**: AI-powered study guide creation with structured content
+4. **Quiz Generation**: Interactive quiz creation with multiple question types
+5. **Advanced Text Processing**: Integration with aimakerspace library for enhanced RAG
 
 ## How It Works
 
-1. User uploads a PDF through the settings panel
-2. PDF is processed and indexed using aimakerspace library
-3. When user asks questions, relevant PDF content is automatically retrieved and used as context
-4. LLM responds using only the PDF content when available
+1. User uploads educational content (PDF, DOCX, or TXT)
+2. Content is processed and categorized by subject
+3. User can generate study guides or quizzes from the content
+4. All features work together to create a comprehensive educational assistant
+
+## Deployment Status
+
+✅ **Successfully deployed to Vercel**
+- **Production URL**: https://the-ai-engineer-challenge-liart.vercel.app
+- **Latest Deployment**: https://the-ai-engineer-challenge-kk0t3d6ik-kchias-projects.vercel.app
+- **Status**: Ready and operational
 
 ## Merge Instructions
 
@@ -39,8 +53,8 @@ This feature branch adds simple PDF upload and RAG (Retrieval-Augmented Generati
 1. Go to the repository on GitHub
 2. Click "Pull requests" tab
 3. Click "New pull request"
-4. Select `feature/simple-pdf-rag` as the source branch and `main` as the target branch
-5. Add title: "Add Simple PDF Upload and RAG Functionality"
+4. Select `feature/educational-content-assistant` as the source branch and `main` as the target branch
+5. Add title: "Add Educational Content Assistant with Study Guide and Quiz Generation"
 6. Review and merge
 
 ### Option 2: GitHub CLI
@@ -53,14 +67,14 @@ git checkout main
 git pull origin main
 
 # Merge the feature branch
-git merge feature/simple-pdf-rag
+git merge feature/educational-content-assistant
 
 # Push to remote
 git push origin main
 
 # Delete the feature branch (optional)
-git branch -d feature/simple-pdf-rag
-git push origin --delete feature/simple-pdf-rag
+git branch -d feature/educational-content-assistant
+git push origin --delete feature/educational-content-assistant
 ```
 
 ## Testing Before Merge
@@ -90,12 +104,18 @@ git push origin --delete feature/simple-pdf-rag
 
 ## Dependencies
 
-- Backend: PyPDF2, numpy, python-dotenv (added to requirements.txt)
+- Backend: fastapi, uvicorn, openai, pydantic, python-multipart, PyPDF2, numpy, python-dotenv, aiohttp, python-docx, markdown
+- Frontend: Next.js 15.5.2, React 19.1.0, TypeScript, Tailwind CSS, Radix UI components
 - External: aimakerspace library (must be available at specified path)
+
+## Environment Variables Required
+
+- `OPENAI_API_KEY`: Required for AI functionality (study guide generation, quiz creation, subject categorization)
 
 ## Notes
 
-- Simple implementation without overengineering
-- PDF context is automatically used when available
-- No complex state management or mode switching
-- Clean, minimal user interface
+- Comprehensive educational content processing system
+- Multi-format file support (PDF, DOCX, TXT)
+- AI-powered study guide and quiz generation
+- Modern, responsive UI with TypeScript
+- Successfully deployed and tested on Vercel
