@@ -24,6 +24,7 @@ export function ChatInterface() {
   const [showStudyGuide, setShowStudyGuide] = useState(false);
   const [documentContent, setDocumentContent] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const settingsPanelRef = useRef<HTMLDivElement>(null);
 
   // Load API key from localStorage on mount
   useEffect(() => {
@@ -44,6 +45,27 @@ export function ChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Handle clicking outside settings panel to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showSettings &&
+        settingsPanelRef.current &&
+        !settingsPanelRef.current.contains(event.target as Node)
+      ) {
+        setShowSettings(false);
+      }
+    };
+
+    if (showSettings) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSettings]);
 
   const handleTestConnection = async (): Promise<boolean> => {
     try {
@@ -161,8 +183,14 @@ export function ChatInterface() {
 
   return (
     <div className="flex h-screen bg-background">
+      {/* Backdrop overlay */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 z-40" />
+      )}
+      
       {/* Settings Sidebar */}
       <div
+        ref={settingsPanelRef}
         className={`fixed inset-y-0 left-0 z-50 w-80 bg-surface border-r border-border transform transition-transform duration-300 ease-in-out ${
           showSettings ? "translate-x-0" : "-translate-x-full"
         }`}
