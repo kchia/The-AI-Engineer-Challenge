@@ -22,6 +22,10 @@ export function QuizGenerator({ content, apiKey, subjectCategory, onClose }: Qui
   const [error, setError] = useState<string | null>(null);
 
   const generateQuiz = async () => {
+    console.log("QuizGenerator - Content received:", content);
+    console.log("QuizGenerator - Content length:", content.length);
+    console.log("QuizGenerator - Content trimmed:", content.trim().length);
+    
     if (!content.trim()) {
       setError("No content available to generate quiz from");
       return;

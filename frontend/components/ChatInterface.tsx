@@ -143,9 +143,11 @@ export function ChatInterface() {
       });
 
       if (result.success) {
+        console.log("Document upload result:", result);
+        console.log("Text content length:", result.text_content?.length || 0);
         setDocumentFile(file);
         setDocumentInfo(result);
-        setDocumentContent(""); // We'll need to get this from the backend
+        setDocumentContent(result.text_content || ""); // Store the text content from the backend
         setError(null);
       } else {
         throw new Error("Upload failed");

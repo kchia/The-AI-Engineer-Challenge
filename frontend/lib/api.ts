@@ -28,6 +28,7 @@ export interface UploadDocumentResponse {
   file_type: string;
   chunks: number;
   text_length: number;
+  text_content: string;  // Add the actual text content
   subject_category: string;
   category_confidence: number;
   category_scores: Record<string, number>;

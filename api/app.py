@@ -225,6 +225,7 @@ async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)
             "file_type": file_type,
             "chunks": len(chunks),
             "text_length": len(text_content),
+            "text_content": text_content,  # Include the actual text content
             "subject_category": category_analysis["category"],
             "category_confidence": category_analysis["confidence"],
             "category_scores": category_analysis["scores"]
