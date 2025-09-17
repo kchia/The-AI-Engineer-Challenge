@@ -172,12 +172,19 @@ async def chat(request: ChatRequest):
         
         # Get PDF context if available
         pdf_chunks = get_pdf_context(request.user_message)
+        print(f"DEBUG: PDF chunks retrieved: {len(pdf_chunks) if pdf_chunks else 0}")
+        print(f"DEBUG: PDF filename: {pdf_filename}")
+        if pdf_chunks:
+            print(f"DEBUG: First chunk preview: {pdf_chunks[0][:200]}...")
         
         # Modify developer message to include PDF context
         enhanced_developer_message = request.developer_message
         if pdf_chunks and pdf_filename:
             context = "\n\n".join(pdf_chunks)
             enhanced_developer_message += f"\n\nUse this PDF context to answer questions about '{pdf_filename}':\n{context}"
+            print(f"DEBUG: Added PDF context to developer message (length: {len(context)})")
+        else:
+            print("DEBUG: No PDF context available")
         
         # Preprocess messages
         enhanced_developer_message = get_enhanced_developer_message(enhanced_developer_message)
@@ -226,6 +233,7 @@ async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)
         category_analysis = subject_categorizer.analyze_content(text_content)
         
         # Create vector database
+        global pdf_context
         if AIMAKERSPACE_AVAILABLE:
             # Filter out empty chunks and ensure they are strings
             valid_chunks = [chunk for chunk in chunks if chunk and isinstance(chunk, str) and chunk.strip()]
@@ -239,6 +247,7 @@ async def upload_document(api_key: str = Form(...), file: UploadFile = File(...)
             # Fallback: store chunks in memory for basic functionality
             pdf_context = {"chunks": chunks, "text": text_content}
         
+        global pdf_filename
         pdf_filename = file.filename
         file_type = get_file_type(file.filename)
         
