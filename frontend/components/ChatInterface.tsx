@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Message, apiClient } from "@/lib/api";
+import { Message, apiClient, UploadDocumentResponse } from "@/lib/api";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 import { ApiKeyInput } from "./ApiKeyInput";
 import { ThemeSelector } from "./ThemeSelector";
-import { Settings, X, AlertCircle } from "lucide-react";
+import { QuizGenerator } from "./QuizGenerator";
+import { StudyGuide } from "./StudyGuide";
+import { Settings, X, AlertCircle, BookOpen, Play } from "lucide-react";
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -15,8 +17,12 @@ export function ChatInterface() {
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [isUploadingPDF, setIsUploadingPDF] = useState(false);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentInfo, setDocumentInfo] = useState<UploadDocumentResponse | null>(null);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [showQuizGenerator, setShowQuizGenerator] = useState(false);
+  const [showStudyGuide, setShowStudyGuide] = useState(false);
+  const [documentContent, setDocumentContent] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load API key from localStorage on mount
@@ -121,40 +127,25 @@ export function ChatInterface() {
     setError(null);
   };
 
-  const handlePDFUpload = async (file: File) => {
+  const handleDocumentUpload = async (file: File) => {
     if (!apiKey.trim()) {
       setError("Please enter your OpenAI API key first");
       return;
     }
 
-    setIsUploadingPDF(true);
+    setIsUploadingDocument(true);
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("api_key", apiKey);
-
-      // Use the same API base URL logic as the API client
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? '' 
-        : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
-      
-      console.log('PDF upload API_BASE_URL:', API_BASE_URL); // Debug log
-      
-      const response = await fetch(`${API_BASE_URL}/api/upload-pdf`, {
-        method: "POST",
-        body: formData
+      const result = await apiClient.uploadDocument({
+        api_key: apiKey,
+        file: file
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${errorText}`);
-      }
-
-      const result = await response.json();
       if (result.success) {
-        setPdfFile(file);
+        setDocumentFile(file);
+        setDocumentInfo(result);
+        setDocumentContent(""); // We'll need to get this from the backend
         setError(null);
       } else {
         throw new Error("Upload failed");
@@ -162,7 +153,7 @@ export function ChatInterface() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
-      setIsUploadingPDF(false);
+      setIsUploadingDocument(false);
     }
   };
 
@@ -192,19 +183,29 @@ export function ChatInterface() {
           />
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-text-primary">PDF Document (Optional)</label>
+            <label className="text-sm font-medium text-text-primary">Educational Document (Optional)</label>
             <input
               type="file"
-              accept=".pdf"
-              onChange={(e) => e.target.files?.[0] && handlePDFUpload(e.target.files[0])}
-              disabled={isUploadingPDF}
+              accept=".pdf,.txt,.docx,.md"
+              onChange={(e) => e.target.files?.[0] && handleDocumentUpload(e.target.files[0])}
+              disabled={isUploadingDocument}
               className="w-full p-2 border border-border rounded bg-background text-text-primary"
             />
-            {pdfFile && (
-              <p className="text-xs text-text-secondary">Loaded: {pdfFile.name}</p>
+            {documentFile && (
+              <div className="text-xs text-text-secondary">
+                <p>Loaded: {documentFile.name}</p>
+                {documentInfo && (
+                  <div className="mt-1 space-y-1">
+                    <p>Type: {documentInfo.file_type}</p>
+                    <p>Subject: {documentInfo.subject_category}</p>
+                    <p>Confidence: {Math.round(documentInfo.category_confidence * 100)}%</p>
+                    <p>Chunks: {documentInfo.chunks}</p>
+                  </div>
+                )}
+              </div>
             )}
-            {isUploadingPDF && (
-              <p className="text-xs text-text-secondary">Processing PDF...</p>
+            {isUploadingDocument && (
+              <p className="text-xs text-text-secondary">Processing document...</p>
             )}
           </div>
 
@@ -228,17 +229,42 @@ export function ChatInterface() {
             </h1>
             <div className="text-sm text-text-secondary">
               <p>{isConnected ? "Connected" : "Disconnected"}</p>
-              {pdfFile && (
-                <p className="text-xs mt-1">📄 {pdfFile.name}</p>
+              {documentFile && (
+                <div className="text-xs mt-1">
+                  <p>📄 {documentFile.name}</p>
+                  {documentInfo && (
+                    <p>Subject: {documentInfo.subject_category}</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="btn-secondary p-2"
-          >
-            <Settings size={20} />
-          </button>
+          <div className="flex items-center space-x-2">
+            {documentFile && (
+              <>
+                <button
+                  onClick={() => setShowQuizGenerator(true)}
+                  className="btn-secondary p-2"
+                  title="Generate Quiz"
+                >
+                  <Play size={20} />
+                </button>
+                <button
+                  onClick={() => setShowStudyGuide(true)}
+                  className="btn-secondary p-2"
+                  title="Generate Study Guide"
+                >
+                  <BookOpen size={20} />
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setShowSettings(true)}
+              className="btn-secondary p-2"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Messages Area */}
@@ -250,12 +276,12 @@ export function ChatInterface() {
                   <span className="text-2xl">🤖</span>
                 </div>
                 <h3 className="text-lg font-medium text-text-primary mb-2">
-                  {pdfFile ? `Chat with ${pdfFile.name}` : "Welcome to AI Chat"}
+                  {documentFile ? `Chat with ${documentFile.name}` : "Welcome to Educational AI Assistant"}
                 </h3>
                 <p className="text-text-secondary mb-4">
-                  {pdfFile 
-                    ? "Ask questions about the uploaded PDF document."
-                    : "Start a conversation by typing a message below."
+                  {documentFile 
+                    ? `Ask questions about the uploaded ${documentInfo?.file_type || 'document'}. Subject: ${documentInfo?.subject_category || 'Unknown'}`
+                    : "Upload an educational document or start a conversation to begin learning."
                   }
                 </p>
                 {!apiKey && (
@@ -322,6 +348,25 @@ export function ChatInterface() {
         <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setShowSettings(false)}
+        />
+      )}
+
+      {/* Educational Components */}
+      {showQuizGenerator && (
+        <QuizGenerator
+          content={documentContent}
+          apiKey={apiKey}
+          subjectCategory={documentInfo?.subject_category}
+          onClose={() => setShowQuizGenerator(false)}
+        />
+      )}
+
+      {showStudyGuide && (
+        <StudyGuide
+          content={documentContent}
+          apiKey={apiKey}
+          subjectCategory={documentInfo?.subject_category}
+          onClose={() => setShowStudyGuide(false)}
         />
       )}
     </div>
