@@ -45,7 +45,6 @@ export function QuizGenerator({ content, apiKey, subjectCategory, onClose }: Qui
       
       if (response.success) {
         setQuiz(response.quiz);
-        setIsTakingQuiz(true);
         setCurrentQuestion(0);
         setAnswers({});
         setShowResults(false);
@@ -95,7 +94,6 @@ export function QuizGenerator({ content, apiKey, subjectCategory, onClose }: Qui
 
   const resetQuiz = () => {
     setQuiz(null);
-    setIsTakingQuiz(false);
     setCurrentQuestion(0);
     setAnswers({});
     setShowResults(false);
