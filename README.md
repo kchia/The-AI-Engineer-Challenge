@@ -4,13 +4,13 @@
        height="auto"/>
 </p>
 
-# 🚀 The AI Engineer Challenge
+# 🎓 Educational Content Assistant
 
-> **A comprehensive learning platform for building production-ready LLM-powered applications with modern web technologies**
+> **An AI-powered educational platform that transforms learning materials into interactive study guides and quizzes using modern web technologies**
 
 ## 🎯 Overview
 
-The AI Engineer Challenge is a hands-on learning experience designed to take you from zero to deploying your first Large Language Model (LLM) powered application. This project combines the power of **FastAPI**, **Next.js**, **OpenAI's GPT models**, and **Vercel** to create a full-stack chat application with real-time streaming responses.
+The Educational Content Assistant is a comprehensive learning platform that leverages AI to enhance educational content processing. Built with **FastAPI**, **Next.js**, **OpenAI's GPT models**, and **Vercel**, this application allows users to upload educational materials (PDF, DOCX, TXT), automatically categorize content by subject, generate structured study guides, and create interactive quizzes for enhanced learning experiences.
 
 ## ⚠️ Production Readiness Note
 
@@ -117,21 +117,34 @@ graph TB
 
 ## ✨ Key Features
 
-- 🤖 **Real-time AI Chat**: Streaming responses from OpenAI's GPT-4.1-mini model
+### 🎓 Educational Content Processing
+- 📄 **Multi-format File Upload**: Support for PDF, DOCX, and TXT files
+- 🏷️ **Automatic Subject Categorization**: AI-powered content classification
+- 📚 **Study Guide Generation**: Create structured, comprehensive study materials
+- 🧠 **Interactive Quiz Creation**: Generate quizzes with multiple question types
+- 💬 **Enhanced Chat Interface**: Context-aware conversations with uploaded content
+
+### 🎨 User Experience
 - 🎨 **Professional UI**: 4 beautiful color themes with dark mode support
 - 📱 **Responsive Design**: Works seamlessly across all devices
-- ⚡ **Modern Stack**: Next.js 14, TypeScript, Tailwind CSS, FastAPI
+- ⚡ **Real-time Processing**: Streaming responses and live updates
 - 🔐 **Secure**: Local API key storage with proper validation
-- 🚀 **Production Ready**: One-click deployment with Vercel
-- 🛠️ **AI-Assisted Development**: Learn with Cursor AI's intelligent coding assistance
+
+### 🛠️ Technical Excellence
+- ⚡ **Modern Stack**: Next.js 15.5.2, TypeScript, Tailwind CSS, FastAPI
+- 🚀 **Production Ready**: Deployed and operational on Vercel
+- 🤖 **AI Integration**: OpenAI GPT-4.1-mini with advanced text processing
+- 📊 **Comprehensive Testing**: Full test coverage for all components
 
 ## 🛠️ Technology Stack
 
 ### Frontend
 
-- **Next.js 14** - React framework with App Router
-- **TypeScript** - Type-safe development
+- **Next.js 15.5.2** - React framework with App Router
+- **React 19.1.0** - Latest React with concurrent features
+- **TypeScript 5** - Type-safe development
 - **Tailwind CSS v3.4** - Utility-first CSS framework
+- **Radix UI** - Accessible component primitives
 - **Lucide React** - Beautiful icon library
 - **React Context** - State management for themes
 
@@ -140,7 +153,10 @@ graph TB
 - **FastAPI** - Modern Python web framework
 - **Pydantic** - Data validation and settings
 - **OpenAI Python SDK** - GPT model integration
+- **PyPDF2** - PDF text extraction
+- **python-docx** - DOCX file processing
 - **Uvicorn** - ASGI server for production
+- **aiohttp** - Async HTTP client
 
 ### Deployment & Tools
 
@@ -154,8 +170,18 @@ graph TB
 The-AI-Engineer-Challenge/
 ├── 📁 api/                          # FastAPI Backend
 │   ├── app.py                       # Main FastAPI application
+│   ├── file_processor.py            # File processing utilities
+│   ├── subject_categorizer.py       # Subject categorization logic
+│   ├── quiz_generator.py            # Quiz generation system
 │   ├── requirements.txt             # Python dependencies
-│   └── README.md                    # Backend documentation
+│   ├── test_*.py                    # Comprehensive test suite
+│   └── 📁 aimakerspace/             # AI processing modules
+│       ├── text_utils.py            # Text processing utilities
+│       ├── vectordatabase.py        # Vector database operations
+│       └── 📁 openai_utils/         # OpenAI integration
+│           ├── chatmodel.py         # Chat model interface
+│           ├── embedding.py         # Embedding utilities
+│           └── prompts.py           # Prompt templates
 ├── 📁 frontend/                     # Next.js Frontend
 │   ├── 📁 app/                      # Next.js App Router
 │   │   ├── globals.css              # Global styles & themes
@@ -166,20 +192,20 @@ The-AI-Engineer-Challenge/
 │   │   ├── MessageBubble.tsx        # Message display component
 │   │   ├── MessageInput.tsx         # Input field component
 │   │   ├── ApiKeyInput.tsx          # API key management
-│   │   └── ThemeSelector.tsx        # Theme selection UI
+│   │   ├── ThemeSelector.tsx        # Theme selection UI
+│   │   ├── StudyGuide.tsx           # Study guide generation
+│   │   └── QuizGenerator.tsx        # Quiz creation interface
 │   ├── 📁 lib/                      # Utility libraries
 │   │   ├── api.ts                   # API client functions
 │   │   └── theme-context.tsx        # Theme management context
 │   ├── tailwind.config.ts           # Tailwind CSS configuration
 │   ├── postcss.config.mjs           # PostCSS configuration
-│   └── README.md                    # Frontend documentation
+│   └── package.json                 # Frontend dependencies
 ├── 📁 docs/                         # Documentation
 │   └── GIT_SETUP.md                 # Git setup guide
-├── 📁 .cursor/                      # Cursor AI configuration
-│   └── 📁 rules/
-│       └── frontend-rule.mdc        # Frontend development rules
 ├── vercel.json                      # Vercel deployment config
 ├── pyproject.toml                   # Python project metadata
+├── MERGE.md                         # Merge instructions
 └── README.md                        # This file
 ```
 
@@ -337,6 +363,102 @@ GET /api/health
 
 **Response**: `{"status": "ok"}`
 
+#### File Upload
+
+```http
+POST /api/upload-file
+Content-Type: multipart/form-data
+
+{
+  "file": [file],
+  "api_key": "sk-..."
+}
+```
+
+**Response**: 
+```json
+{
+  "success": true,
+  "filename": "document.pdf",
+  "content": "extracted text content",
+  "file_type": "pdf"
+}
+```
+
+#### Subject Categorization
+
+```http
+POST /api/categorize-subject
+Content-Type: application/json
+
+{
+  "content": "Educational content text...",
+  "api_key": "sk-..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "category": "Mathematics",
+  "confidence": 0.95
+}
+```
+
+#### Study Guide Generation
+
+```http
+POST /api/generate-study-guide
+Content-Type: application/json
+
+{
+  "content": "Educational content text...",
+  "subject_category": "Mathematics",
+  "api_key": "sk-..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "study_guide": {
+    "title": "Study Guide Title",
+    "sections": [...],
+    "key_concepts": [...],
+    "summary": "..."
+  }
+}
+```
+
+#### Quiz Generation
+
+```http
+POST /api/generate-quiz
+Content-Type: application/json
+
+{
+  "content": "Educational content text...",
+  "subject_category": "Mathematics",
+  "num_questions": 5,
+  "question_types": ["multiple_choice", "true_false"],
+  "api_key": "sk-..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "quiz": {
+    "title": "Quiz Title",
+    "questions": [...],
+    "total_questions": 5
+  }
+}
+```
+
 #### Chat Endpoint
 
 ```http
@@ -361,6 +483,34 @@ The frontend includes a comprehensive API client (`frontend/lib/api.ts`) with:
 - Streaming response handling
 - Error management and retry logic
 - Connection health monitoring
+- File upload utilities
+- Study guide and quiz generation methods
+
+## 🚀 Live Deployment
+
+### Production URLs
+
+- **Main Application**: https://the-ai-engineer-challenge-liart.vercel.app
+- **Latest Deployment**: https://the-ai-engineer-challenge-kk0t3d6ik-kchias-projects.vercel.app
+- **Status**: ✅ Live and Operational
+
+### Environment Setup
+
+To use the deployed application, you'll need to:
+
+1. **Set OpenAI API Key**: Configure your OpenAI API key in the application settings
+2. **Upload Content**: Use the file upload feature to process educational materials
+3. **Generate Content**: Create study guides and quizzes from your uploaded content
+
+### Features Available in Production
+
+- ✅ File upload (PDF, DOCX, TXT)
+- ✅ Subject categorization
+- ✅ Study guide generation
+- ✅ Quiz creation and taking
+- ✅ Enhanced chat interface
+- ✅ Responsive design
+- ✅ Theme customization
 
 ## 🛠️ Troubleshooting
 
@@ -393,14 +543,19 @@ The frontend includes a comprehensive API client (`frontend/lib/api.ts`) with:
 
 ## 🎯 Success Metrics
 
-By completing this challenge, you will have:
+By completing this educational content assistant, you will have:
 
-- ✅ Built a production-ready full-stack application
-- ✅ Integrated AI capabilities using OpenAI's API
+- ✅ Built a production-ready full-stack educational platform
+- ✅ Integrated advanced AI capabilities for content processing
+- ✅ Implemented multi-format file upload and processing
+- ✅ Created intelligent subject categorization system
+- ✅ Developed AI-powered study guide generation
+- ✅ Built interactive quiz creation and taking system
 - ✅ Implemented real-time streaming responses
-- ✅ Created a responsive, professional UI
+- ✅ Created a responsive, professional UI with modern design
 - ✅ Deployed to production with Vercel
 - ✅ Learned modern development practices with AI assistance
+- ✅ Gained experience in educational technology development
 
 ## 🤝 Contributing
 
@@ -591,27 +746,34 @@ Looking forward to building more AI-powered applications! 🙌✨
 
 ## 🎉 Congratulations!
 
-You've successfully completed the AI Engineer Challenge! You now have:
+You've successfully built a comprehensive Educational Content Assistant! You now have:
 
-- 🏗️ **A production-ready full-stack application**
-- 🤖 **Hands-on experience with LLM integration**
-- 🎨 **Modern UI/UX development skills**
+- 🏗️ **A production-ready full-stack educational platform**
+- 🤖 **Advanced AI integration for educational content processing**
+- 📚 **Multi-format file processing capabilities**
+- 🧠 **Intelligent subject categorization and content analysis**
+- 📖 **AI-powered study guide generation system**
+- 🧩 **Interactive quiz creation and assessment tools**
+- 🎨 **Modern UI/UX development skills with educational focus**
 - 🚀 **Deployment and DevOps knowledge**
 - 🛠️ **AI-assisted development experience**
+- 🎓 **Educational technology development expertise**
 
 ### Next Steps
 
-1. **Explore Advanced Features**: Add user authentication, conversation history, or file uploads
-2. **Try Different Models**: Experiment with other OpenAI models or different AI providers
-3. **Build More Projects**: Apply these skills to new ideas and challenges
-4. **Join the Community**: Connect with other developers in the AI Makerspace
+1. **Enhance Educational Features**: Add progress tracking, learning analytics, or adaptive learning
+2. **Expand Content Support**: Add support for more file formats (PowerPoint, images, videos)
+3. **Improve AI Models**: Experiment with specialized educational AI models
+4. **Add Collaboration**: Implement multi-user features and sharing capabilities
+5. **Build More Projects**: Apply these skills to new educational technology challenges
 
 ### Keep Learning
 
-- 📚 **Advanced Next.js**: Learn about server components, middleware, and optimization
-- 🔧 **Backend Development**: Explore databases, authentication, and microservices
-- 🤖 **AI Integration**: Dive deeper into prompt engineering and AI model fine-tuning
-- ☁️ **Cloud Platforms**: Explore AWS, Google Cloud, or Azure for advanced deployments
+- 📚 **Educational Technology**: Explore learning management systems and educational APIs
+- 🔧 **Advanced Backend**: Implement databases, user management, and content versioning
+- 🤖 **AI in Education**: Dive deeper into personalized learning and adaptive assessment
+- ☁️ **Scalable Platforms**: Explore enterprise-grade deployment and content delivery
+- 🎯 **User Experience**: Focus on accessibility and inclusive design for education
 
 ---
 
